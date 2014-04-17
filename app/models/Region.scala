@@ -4,6 +4,7 @@
 
 package models
 
+import _root_.scala.Double
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.{HRegionInfo, HRegionLocation, HServerLoad}
 import org.codehaus.jackson.annotate.JsonIgnoreProperties
@@ -23,7 +24,7 @@ case class Region(val regionServer:RegionServer,  val regionLoad:HServerLoad.Reg
   val parsedRegionName = RegionName(regionName)
 
   val serverName        = regionServer.serverName
-  val serverHostName    = regionServer.hostName
+  val serverHostName    = regionServer.hostName.replaceAll(".prod1.connexity.net", "")
   val serverPort        = regionServer.port
   val serverInfoPort    = regionServer.infoPort
 
@@ -42,6 +43,21 @@ case class Region(val regionServer:RegionServer,  val regionLoad:HServerLoad.Reg
   // This might be safely used within URIs
   val regionURI         = tableName + ",," + regionIdTimestamp + "." +
                             parsedRegionName.encodedName
+
+  val readRequestsCount    = regionLoad.getReadRequestsCount
+  val writeRequestsCount   = regionLoad.getWriteRequestsCount
+
+  val readRate    = lastReadRate
+  val writeRate   = lastWriteRate
+
+  val readRatePerMB    = lastReadRatePerMB
+  val writeRatePerMB   = lastWriteRatePerMB
+
+  def lastReadRate() : Double = MetricDef.READ_RATE(regionName).lastValue
+  def lastWriteRate() : Double = MetricDef.WRITE_RATE(regionName).lastValue
+
+  def lastReadRatePerMB() : Double = if (storefileSizeMB > 0) lastReadRate / storefileSizeMB  else 0
+  def lastWriteRatePerMB() : Double = if (storefileSizeMB > 0) lastWriteRate / storefileSizeMB else 0
 
   def getRegionInfo() = {
     var loc:HRegionLocation = null;

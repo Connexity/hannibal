@@ -4,6 +4,7 @@
 
 package models
 
+import _root_.scala.Predef._
 import anorm._
 import play.api.Play.current
 import play.api.db.DB
@@ -13,6 +14,8 @@ import collection.mutable.{ListBuffer, MutableList}
 import org.apache.hadoop.hbase.util.Bytes
 import utils.ByteUtil
 import java.security.MessageDigest
+import models.Metric
+import models.MetricRecord
 
 object MetricDef {
 
@@ -31,6 +34,12 @@ object MetricDef {
 
   val COMPACTIONS = "compactions"
   def COMPACTIONS(region: String) : MetricDef = findRegionMetricDef(region, COMPACTIONS)
+
+  val READ_RATE = "readRate"
+  def READ_RATE(region: String) : MetricDef = findRegionMetricDef(region, READ_RATE)
+
+  val WRITE_RATE = "writeRate"
+  def WRITE_RATE(region: String) : MetricDef = findRegionMetricDef(region, WRITE_RATE)
 
   def findRegionMetricDef(region: String, name: String) = find(hash(region), name, region)
 

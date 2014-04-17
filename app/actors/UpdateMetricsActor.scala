@@ -4,6 +4,13 @@
 
 package actors
 
+import _root_.play.api.Logger
+import _root_.scala.collection.mutable.HashMap
+import _root_.scala.Double
+import _root_.scala.Long
+import _root_.scala.None
+import _root_.scala.Predef._
+import _root_.scala.Some
 import akka.actor.{Props, Actor}
 import play.api.{Configuration, Logger}
 import java.util.Date
@@ -15,6 +22,7 @@ import akka.util.duration._
 object UpdateMetricsActor {
 
   val UPDATE_REGION_INFO = "updateRegionInfo"
+  val UPDATE_REGION_INFO_RATES = "updateRegionInfoRates"
   val INITIALIZE_LOGFILE = "initializeLogfile"
   val UPDATE_COMPACTION_METRICS = "updateCompactionMetrics"
   val CLEAN = "clean"
@@ -49,6 +57,8 @@ object UpdateMetricsActor {
 
     scheduler.schedule(2 seconds, regionsFetchIntervalInSeconds seconds, updateMetricsActor, UpdateMetricsActor.UPDATE_REGION_INFO)
 
+    scheduler.schedule(7 seconds, regionsFetchIntervalInSeconds seconds, updateMetricsActor, UpdateMetricsActor.UPDATE_REGION_INFO_RATES)
+
     if(logfileFetchIntervalInSeconds > 0 ) {
       scheduler.scheduleOnce(3 seconds, updateMetricsActor, UpdateMetricsActor.INITIALIZE_LOGFILE)
     }  else {
@@ -58,6 +68,10 @@ object UpdateMetricsActor {
 }
 
 class UpdateMetricsActor extends Actor {
+
+  // The actor maintains these in memory in order to calculate rates
+  val reads:  HashMap[String, (Long,Long)] = new HashMap()
+  val writes: HashMap[String, (Long,Long)] = new HashMap()
 
   def receive = {
 
@@ -77,6 +91,47 @@ class UpdateMetricsActor extends Actor {
           if(MetricDef.MEMSTORE_SIZE_MB(regionInfo.regionName).update(regionInfo.memstoreSizeMB))
             updated = updated + 1
         }
+        updated
+      })
+
+    // Useful for anything being calculated as a rate between refreshes
+    case UPDATE_REGION_INFO_RATES =>
+      executeMetricUpdate("RegionRates", () => {
+
+        val sampleInterval = 10
+        var updated = 0
+        val regions = models.Region.all
+        val updateTime = System.currentTimeMillis()
+
+
+        regions.foreach { regionInfo =>
+
+          reads.get(regionInfo.regionName) match {
+            case Some(sample) => {
+              val delta = regionInfo.readRequestsCount - sample._2
+              val elapsed = updateTime - sample._1
+              val rate : Double = delta / (elapsed / 1000.0D)
+              if(MetricDef.READ_RATE(regionInfo.regionName).update(rate.round))
+                updated = updated + 1
+            }
+            case None => { Logger.debug("Initializing readRequestCount for " + regionInfo.regionName)}
+          }
+
+          writes.get(regionInfo.regionName) match {
+            case Some(sample) => {
+              val delta = regionInfo.writeRequestsCount - sample._2
+              val elapsed = updateTime - sample._1
+              val rate : Double = delta / (elapsed / 1000.0D)
+              if(MetricDef.WRITE_RATE(regionInfo.regionName).update(rate.round))
+                updated = updated + 1
+            }
+            case None => { Logger.debug("Initializing readRequestCount for " + regionInfo.regionName)}
+          }
+
+          reads.put(regionInfo.regionName,  (updateTime, regionInfo.readRequestsCount))
+          writes.put(regionInfo.regionName, (updateTime, regionInfo.writeRequestsCount))
+        }
+
         updated
       })
 
