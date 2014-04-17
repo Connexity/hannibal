@@ -13,6 +13,8 @@ class @ShowTableView extends Backbone.View
 
     @$(".sort-options ul li").click(_.bind(@sortItemClicked, @))
 
+    @$(".field-options ul li").click(_.bind(@fieldItemClicked, @))
+
     @updateTableRegions()
 
   createTableRegionsChartView: ($el) ->
@@ -42,3 +44,17 @@ class @ShowTableView extends Backbone.View
         $this.removeClass('checked')
     )
 
+  fieldItemClicked: (evt) ->
+    $element = $(evt.target);
+    field = $element.data('field')
+
+    @tableRegionsChartView.setFieldName(field)
+    @tableRegionsChartView.collection.setSortField(field)
+    @tableRegionsChartView.collection.sort()
+    @$(".field-options ul li").each(() ->
+      $this = $(@)
+      if($this.data('field') == field)
+        $this.addClass('checked')
+      else
+        $this.removeClass('checked')
+    )

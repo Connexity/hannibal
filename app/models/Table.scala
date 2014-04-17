@@ -16,7 +16,7 @@ object Table {
     hBaseContext.hBase.eachTableDescriptor { desc =>
       list += Table(desc)
     }
-    list.toList
+    list.toList.sortBy(_.name)
   }
 
   def findByName(name: String): Table = {

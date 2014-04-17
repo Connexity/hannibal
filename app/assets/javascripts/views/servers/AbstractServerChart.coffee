@@ -10,7 +10,10 @@ class @AbstractServerChartView extends Backbone.View
     <div class="chart"></div>
     <div class="x-axis"></div>
     <div class="legend"></div>
-    <div class="stack-toggle"></div>
+    <div class="radio-options">
+        <div class="stack-toggle"></div>
+        <div class="plot-by"></div>
+    </div>
   """
 
   initialize: ->

@@ -31,12 +31,19 @@ class @Regions extends Backbone.Collection
   initialize: () ->
     super()
     @setSort("size")
+    @setSortField("storefileSizeMB")
+
+  setSortField: (attrib) ->
+    @sortField = attrib
+    @setSort(@sortType)
 
   setSort: (attrib) ->
+    @sortType = attrib
+    if attrib == 'size' then attrib = @sortField
     func = @constructor.sortFunctions[attrib]
     if !func
       func = (a, b) ->
-        if a.get(attrib) > b.get(attrib)
+        if a.get(attrib) < b.get(attrib)
           1
         else
           -1

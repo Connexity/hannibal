@@ -7,12 +7,25 @@
         <div class="y-axis"></div>
         <div class="x-axis"></div>
         <div class="chart"></div>
-        <div class="sort-options">
-            <ul>
-                <li class="checked" data-sort="size">Sort by Size</li>
-                <li data-sort="startKey">Sort by Key</li>
-                <li data-sort="host">Sort by Host</li>
-            </ul>
+        <div class="chart-options">
+
+            <div class="field-options">
+                <ul>
+                    <li class="checked" data-field="storefileSizeMB">Size (MB)</li>
+                    <li data-field="readRate">Read Req. / sec</li>
+                    <li data-field="writeRate">Write Req. / sec</li>
+                    <li data-field="readRatePerMB">Read Req. / sec / MB</li>
+                    <li data-field="writeRatePerMB">Write Req. / sec / MB</li>
+                </ul>
+            </div>
+
+            <div class="sort-options">
+                <ul>
+                    <li class="checked" data-sort="size">Sort by Value</li>
+                    <li data-sort="startKey">Sort by Key</li>
+                    <li data-sort="host">Sort by Host</li>
+                </ul>
+            </div>
         </div>
         <div class="legend-container">
             <div class="smoother" title="Smoothing"></div>

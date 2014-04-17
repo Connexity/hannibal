@@ -25,6 +25,40 @@ class StackingToggleView extends Backbone.View
       </ul>
     """
 
+class PlotByView extends Backbone.View
+  events:
+    "click ul.field-options li": (evnt) -> @plotBy(evnt)
+
+  initialize: ->
+    @parentView = @options.parentView
+    @graph = @options.graph
+    @render()
+
+  plotBy: (evnt) ->
+    $element = $(evnt.target)
+    plotBy = $element.data('field')
+
+    @$("ul.field-options li").each(() ->
+      $this = $(@)
+      if($this.data('field') == plotBy)
+        $this.addClass('checked')
+      else
+        $this.removeClass('checked')
+    )
+
+    @parentView.setPlotByField(plotBy)
+    @parentView.render()
+
+
+  render: ->
+    @$el.html """
+      <ul class="field-options">
+        <li class="checked" data-field="storefileSizeMB">Size (MB)</li>
+        <li data-field="totalReadRate">Read Req. / sec</li>
+        <li data-field="totalWriteRate">Write Req. / sec</li>
+      </ul>
+    """
+
 class @ServerChartView extends  AbstractServerChartView
 
   initialize: ->
@@ -32,6 +66,10 @@ class @ServerChartView extends  AbstractServerChartView
 
     @collection.on "reset", _.bind(@render, @)
     @on "table:click", _.bind(@onTableClick, @)
+    @setPlotByField('storefileSizeMB')
+
+  setPlotByField: (attrib) ->
+    @plotByField = attrib
 
   getChartSeries: ->
     hostNames = @hostNames
@@ -45,9 +83,19 @@ class @ServerChartView extends  AbstractServerChartView
       groupedByHost = _.groupBy(regionInfos, (regionInfo) -> regionInfo.get("serverHostName"))
       _.each hostNames, (hostName)-> groupedByHost[hostName] = [] unless groupedByHost[hostName]
       values = for own hostName, regionInfos of groupedByHost
+
+        storefileSizeMB = _.reduce(regionInfos, ((sum, regionInfo) -> sum + regionInfo.get('storefileSizeMB')), 0)
+        totalReadRate = _.reduce(regionInfos, ((num, ri) -> ri.get('readRate') + num), 0);
+        totalWriteRate = _.reduce(regionInfos, ((num, ri) -> ri.get('writeRate') + num), 0);
+
         x = hostNameMap[hostName]
-        y = _.reduce(regionInfos, ((sum, regionInfo) -> sum + regionInfo.get('storefileSizeMB')), 0)
-        {x, y, regionInfos}
+
+        switch @plotByField
+          when 'storefileSizeMB' then y = storefileSizeMB
+          when 'totalReadRate' then y = totalReadRate
+          when 'totalWriteRate' then y = totalWriteRate
+
+        {x, y, regionInfos, storefileSizeMB, totalReadRate, totalWriteRate}
 
       values = _.sortBy(values, (val)-> val.x)
       {} =
@@ -74,19 +122,28 @@ class @ServerChartView extends  AbstractServerChartView
       element: @$('.y-axis').get(0)
       graph: graph
       orientation: 'left'
-      tickFormat: (val)=> if val > 0 then RickshawUtil.humanReadableBytes(val * 1024 * 1024) else 0
+      tickFormat: (val)=>
+        if @plotByField == 'storefileSizeMB'
+          if val > 0 then RickshawUtil.humanReadableBytes(val * 1024 * 1024) else 0
+        else
+          val
+
 
     @hoverDetail = new RickshawUtil.InteractiveHoverDetail
       graph: graph
       xFormatter: @hostNameAtIndex
       yFormatter: (y)-> "#{y} MB",
       formatter: (series, x, y, formattedX, formattedY, d) ->
-        size = formattedY
+        size = d.value.storefileSizeMB
         count = d.value.regionInfos.length
+        totalReadRate = d.value.totalReadRate
+        totalWriteRate = d.value.totalWriteRate
         return """
           <b>#{series.name}</b><br/>
-          #{size}<br/>
-          #{count} Regions
+          #{size} MB<br/>
+          #{count} Regions<br/>
+          #{totalReadRate} Read Req. / sec<br />
+          #{totalWriteRate} Write Req. / sec
         """
       onClick: (series) =>
         @trigger("table:click", series)
@@ -95,11 +152,16 @@ class @ServerChartView extends  AbstractServerChartView
       el: @$('.stack-toggle')
       graph: graph
 
+    plotBy = new PlotByView
+      el: @$('.plot-by')
+      graph: graph
+      parentView: @
+
     allSeriesToggle = new RickshawUtil.AllSeriesToggle
       toggle: components.shelving
       toggleText: "All tables"
 
-    _.extend(components, {xAxis, yAxis, @hoverDetail, stackingToggle, allSeriesToggle})
+    _.extend(components, {xAxis, yAxis, @hoverDetail, stackingToggle, plotBy, allSeriesToggle})
 
   onTableClick: ->
     @storeLegendState()

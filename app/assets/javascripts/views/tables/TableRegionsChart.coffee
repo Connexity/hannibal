@@ -7,6 +7,7 @@ class @TableRegionsChartView extends Backbone.View
     @palette = @options.palette
     @collection.on "reset", _.bind(@render, @)
     @series = []
+    @setFieldName('storefileSizeMB')
 
   render: ->
     if @collection.isZeroLength()
@@ -21,6 +22,8 @@ class @TableRegionsChartView extends Backbone.View
       else
         @updateGraph()
 
+  setFieldName: (name) ->
+    @fieldName = name
 
   createGraph: ->
     @graph =  new Rickshaw.Graph
@@ -34,7 +37,12 @@ class @TableRegionsChartView extends Backbone.View
       graph: @graph,
       orientation: 'left',
       element: @$(".y-axis")[0]
-      tickFormat: (val) -> if val > 0 then RickshawUtil.humanReadableBytes(val * 1024 * 1024, minExponent) else 0
+      fieldName = @fieldName
+      tickFormat: (val) ->
+        if fieldName == 'storefileSizeMB'
+            if val > 0 then RickshawUtil.humanReadableBytes(val * 1024 * 1024, minExponent) else 0
+        else
+            val
 
     @xAxis = new RickshawUtil.LeftAlignedXAxis
       graph: @graph,
@@ -53,7 +61,7 @@ class @TableRegionsChartView extends Backbone.View
       threshold: @threshold
       name: "Split Size"
       color: "#ff0000"
-      disabled: @threshold > @collection.at(0).get('storefileSizeMB') * 2
+      disabled: @threshold > @collection.at(0).get(@fieldName) * 2
 
     @shelving = new Rickshaw.Graph.Behavior.Series.Toggle
       graph: @graph
@@ -75,7 +83,9 @@ class @TableRegionsChartView extends Backbone.View
         host = "Host:&nbsp;" + region.get('serverHostName')
         storefileSize = "Size (MB):&nbsp;" + region.get("storefileSizeMB").toFixed(0)
         storefiles = "Storefiles:&nbsp;" + region.get("storefiles")
-        headline + "<br>" + host + "<br>" + storefileSize + "<br>" + storefiles
+        readRate = "Read Req. / sec:&nbsp;" + region.get("readRate")
+        writeRate = "Write Req. / sec:&nbsp;" + region.get("writeRate")
+        headline + "<br>" + host + "<br>" + storefileSize + "<br>" + storefiles + "<br>" + readRate + "<br>" + writeRate
       )
       onClick: (series) =>
         document.location.href = Routes.Regions.show
@@ -88,11 +98,12 @@ class @TableRegionsChartView extends Backbone.View
     @graph.render()
 
   createSeries: (name, regions) ->
-    minSize = regions.max((region) -> region.get('storefileSizeMB')).get('storefileSizeMB') / 100
+    fieldName = @fieldName
+    minSize = regions.max((region) -> region.get(fieldName)).get(@fieldName) / 100
     series = {
       name: "Storefile Size (MB)"
       data: regions.map((region, x) ->
-        y = region.get('storefileSizeMB')
+        y = region.get(fieldName)
         return {
           x: x
           y: if y > minSize then y else minSize
