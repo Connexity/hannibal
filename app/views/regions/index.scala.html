@@ -2,10 +2,51 @@
 
 @main("Regions") {
 
-<ul>
-	@regionList.map { region =>
-	<li><a href="@routes.Regions.show(java.net.URLEncoder.encode(region.regionURI, "UTF-8"))">@region.regionName</a></li> }
-</ul>
+<script>
+    // pass in a fuction to tell hottie how to get the value for the element
+    function readValues(e) { var v = $(e).attr("data-val"); return (v == "0.0") ? null : v; }
+    var colors = ["#63BE7B","#FBE983","#F8696B"];
+
+    var hottieOptions = {
+        colorArray: colors,
+        readValue : readValues,
+        nullColor: '#555555'
+    };
+
+    $(function(){
+        $('.lrr').hottie(hottieOptions);
+        $('.lwr').hottie(hottieOptions);
+        $('.lwrr').hottie(hottieOptions);
+        $('.lrrr').hottie(hottieOptions);
+    });
+</script>
+
+<table class="rp sortable">
+    <tr>
+        <th style="text-align: left;">Region Name</th>
+        <th style="text-align: left;">Table</th>
+        <th style="text-align: left;">Server</th>
+        <th>Storefile Size</th>
+        <th>Read Requests Rate</th>
+        <th>Write Requests Rate</th>
+        <th>Read Requests per MB</th>
+        <th>Write Requests per MB</th>
+    </tr>
+    @regionList.map { region =>
+    <tr>
+        <td><a href="@routes.Regions.show(java.net.URLEncoder.encode(region.regionName, "UTF-8"))">@region.regionName</a></td>
+        <td>@region.tableName</td>
+        <td>@region.serverHostName</td>
+        <td class="num" sortkey="@region.storefileSizeMB">@(region.storefileSizeMB) MB</td>
+
+        <td class="num lrr" data-val="@region.lastReadRate">@java.text.NumberFormat.getNumberInstance().format(region.lastReadRate)</td>
+        <td class="num lwr" data-val="@region.lastWriteRate">@java.text.NumberFormat.getNumberInstance().format(region.lastWriteRate)</td>
+        <td class="num lrrr" data-val="@region.lastReadRatePerMB">@java.text.NumberFormat.getNumberInstance().format(region.lastReadRatePerMB)</td>
+        <td class="num lwrr" data-val="@region.lastWriteRatePerMB">@java.text.NumberFormat.getNumberInstance().format(region.lastWriteRatePerMB)</td>
+
+    </tr>
+    }
+</table>
 
 } { } {
 }

@@ -1,0 +1,5 @@
+table.sortable th {
+    cursor: pointer;
+}
+
+table.sortable th.sorttable_sorted { background-color: #F5F5F5; }
