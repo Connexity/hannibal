@@ -1,4 +1,4 @@
-# Copyright 2013 Sentric. See LICENSE for details.
+# Copyright 2014 YMC. See LICENSE for details.
 
 class @MetricChartView extends Backbone.View
   initialize: ->
@@ -43,17 +43,16 @@ class @MetricChartView extends Backbone.View
     @hoverDetail = new Rickshaw.Graph.HoverDetail
       graph: @graph
       yFormatter: ((y) => y)
+      xFormatter: ((x) => new Date(x * 1000).toLocaleString())
       formatter: ((series, x, y, formattedX, formattedY, d) =>
         "#{series.name} : #{series.denormalize(y)} #{series.unit}"
       )
 
-    time = new Rickshaw.Fixtures.Time()
     @xAxis = new RickshawUtil.LeftAlignedXAxis
       graph: @graph
       element: @$(".x-axis")[0]
       tickFormat: (x) ->
-        d = new Date(x * 1000)
-        time.formatTime(d)
+        new Date(x * 1000).toLocaleTimeString(navigator.language, {hour: '2-digit', minute:'2-digit'})
 
     @slider = new Rickshaw.Graph.RangeSlider
       graph: @graph,
@@ -64,15 +63,17 @@ class @MetricChartView extends Backbone.View
       element: @$('.timeline')[0]
 
     @createAnnotations()
-
+	
+    legendElement = @$(".legend")[0]
     @legend = new Rickshaw.Graph.Legend
       graph: @graph
-      element: @$(".legend")[0]
+      element: legendElement
+    @$(legendElement).drags()
 
     @shelving = new Rickshaw.Graph.Behavior.Series.Toggle
       graph: @graph
       legend: @legend
-
+	
     @graph.render()
 
     $(".timeline").delegate(".annotation", 'mouseover',( (e) ->

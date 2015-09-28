@@ -1,4 +1,4 @@
-# Copyright 2013 Sentric. See LICENSE for details.
+# Copyright 2014 YMC. See LICENSE for details.
 
 root = exports ? @
 
@@ -59,6 +59,10 @@ class @AbstractServerChartView extends Backbone.View
 
   render: ->
     RickshawUtil.mergeSeriesData(@getChartSeries(), @series)
+
+    if !@series || !@series.length
+       @$el.html("No Data recorded yet.")
+       return
 
     if(!@graphComponents)
       @$el.html(klass.chartContent)

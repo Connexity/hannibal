@@ -1,4 +1,4 @@
-# Copyright 2013 Sentric. See LICENSE for details.
+# Copyright 2014 YMC. See LICENSE for details.
 
 class @ShowRegionView extends Backbone.View
 
@@ -11,6 +11,7 @@ class @ShowRegionView extends Backbone.View
       el: @$(".refresh-text")
       pattern: "(next refresh in %delay% seconds)"
     @visualCountDown.on "done", _.bind(@updateMetrics, @)
+	
     @updateMetrics()
 
   createRegionMetricChartView: ($el) ->

@@ -1,4 +1,4 @@
-@(regionList:Seq[models.Region])(implicit request: play.api.mvc.Request[Any])
+@(regions: Seq[models.Region])(implicit request: play.api.mvc.Request[_])
 
 @main("Regions") {
 
@@ -47,6 +47,3 @@
     </tr>
     }
 </table>
-
-} { } {
-}

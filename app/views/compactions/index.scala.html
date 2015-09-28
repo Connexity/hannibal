@@ -1,9 +1,10 @@
-@(longestCompactionString:String)(implicit request: play.api.mvc.Request[Any])
+@(longestCompactionString:String)(implicit request: play.api.mvc.Request[_])
 
 @import java.text.DateFormat
 
+@import play.api.libs.json._
+
 @includes = {
-  <link rel="stylesheet" media="screen" href='@routes.Assets.at("stylesheets/metric_chart_view.css")'>
   <script src='@routes.Assets.at("javascripts/views/common/VisualCountDown.js")' type="text/javascript"></script>
   <script src='@routes.Assets.at("javascripts/views/common/MetricChart.js")' type="text/javascript"></script>
   <script src='@routes.Assets.at("javascripts/views/compactions/ShowCompactions.js")' type="text/javascript"></script>
@@ -12,39 +13,8 @@
   <script src='@routes.Assets.at("javascripts/main/compactions/show_compactions.js")' type="text/javascript"></script>
 }
 
-@content = {
-  <div id="show-compactions-view">
-      <div class="widget">
-          <div class="title">Compactions <span class="refresh-text"></span></div>
-          <div class="content">
-              <ul>
-                  <li>Longest Compaction during last 24 Hours: <span class="longest-compaction">-please wait-</span></li>
-                  <li>Longest Compaction during last 7 Days: <span>@Html(longestCompactionString)</span></li>
-              </ul>
-          </div>
-          <div>
-
-          </div>
-      </div>
-
-      <div class="widget">
-          <div class="title">History</div>
-          <div class="content">
-              @clusterMetricChart(Seq(
-                  models.MetricDef.COMPACTIONS
-              ))
-          </div>
-          <div class="description">
-              <div class="headline"></div>
-              <div class="body">
-              </div>
-          </div>
-      </div>
-  </div>
-}
-
 @clusterMetricChart(metricNames: Seq[String]) = {
-    <div class="metric-chart-view compaction-metric-chart-view" data-metric-names="@com.codahale.jerkson.Json.generate(metricNames)">
+    <div class="metric-chart-view compaction-metric-chart-view" data-metric-names="@Json.stringify(Json.toJson(metricNames))">
         <div class="x-axis"></div>
         <div class="chart"></div>
         <div class="legend-container">
@@ -60,4 +30,33 @@
 
 }
 
-@main("Compactions")(content)(includes)(breadcrumbs)
+@main("Compactions", includes, breadcrumbs){
+    <div id="show-compactions-view">
+        <div class="widget">
+            <div class="title">Compactions <span class="refresh-text"></span></div>
+            <div class="content">
+                <ul>
+                    <li>Longest Compaction during last 24 Hours: <span class="longest-compaction">-please wait-</span></li>
+                    <li>Longest Compaction during last 7 Days: <span>@Html(longestCompactionString)</span></li>
+                </ul>
+            </div>
+            <div>
+
+            </div>
+        </div>
+
+        <div class="widget">
+            <div class="title">History</div>
+            <div class="content">
+                @clusterMetricChart(Seq(
+                    models.MetricDef.COMPACTIONS
+                ))
+            </div>
+            <div class="description">
+                <div class="headline"></div>
+                <div class="body">
+                </div>
+            </div>
+        </div>
+    </div>
+}

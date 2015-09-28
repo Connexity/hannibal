@@ -1,4 +1,4 @@
-# Copyright 2013 Sentric. See LICENSE for details.
+# Copyright 2014 YMC. See LICENSE for details.
 
 class @TableRegionsChartView extends Backbone.View
 
@@ -52,7 +52,6 @@ class @TableRegionsChartView extends Backbone.View
     @legend = new Rickshaw.Graph.Legend
       graph: @graph
       element: @$(".legend")[0]
-
 
     @threshold = @table.maxFileSize / 1024 / 1024
     @thresholdLine = new RickshawUtil.ThresholdLine

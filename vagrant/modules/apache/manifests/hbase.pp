@@ -1,14 +1,24 @@
 
 class apache::hbase::standalone(
-  $version = "0.90.6"
+  $archiveUrl = "http://archive.apache.org/dist/hbase/hbase-0.96.2/hbase-0.96.2-hadoop1-bin.tar.gz",
+
+  $ipAddress = "127.0.0.1",
+
+  $hostName = "localhost"
 ) {
     class { "apache::hbase::base":
-      version => $version
+      archiveUrl => $archiveUrl
+    }
+
+    file { "/etc/hosts":
+      ensure => file,
+      content => template("${module_name}/hosts.erb")
     }
 
     service { "hadoop-hbase-master":
         name => "apache-hbase-master",
         ensure => running,
+        enable    => true,
         require => File["/etc/init.d/apache-hbase-master"]
     }
 
@@ -21,12 +31,17 @@ class apache::hbase::standalone(
 }
 
 class apache::hbase::base(
-  $version
+  $archiveUrl
 ) {
     require java
+#    package { "openjdk-6-jre":
+#       ensure => "installed"
+#    }
 
     apache::package { "hbase":
-        version => $version,
+#        require => Package["openjdk-6-jre"],
+        archiveUrl => $archiveUrl,
+        target => "/opt/hbase",
         notify => Exec["permissions"]
     }
 

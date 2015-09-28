@@ -1,7 +1,9 @@
+import com.typesafe.sbt.web.SbtWeb
 import sbt._
 import Keys._
-import PlayProject._
 import java.lang.System._
+import play.Play.autoImport._
+import PlayKeys._
 
 object ApplicationBuild extends Build {
 
@@ -9,7 +11,7 @@ object ApplicationBuild extends Build {
     val appVersion      = "1.0-SNAPSHOT"
 
     val hBaseVersion    =
-      if(Seq("0.90", "0.92", "0.94").contains(getenv("HANNIBAL_HBASE_VERSION")))
+      if(Seq("0.90", "0.92", "0.94", "0.96", "0.98").contains(getenv("HANNIBAL_HBASE_VERSION")))
         getenv("HANNIBAL_HBASE_VERSION")
       else
         "0.90"
@@ -17,7 +19,12 @@ object ApplicationBuild extends Build {
     println("Configuring for HBase Version: %s".format(hBaseVersion))
 
     val appDependencies = Seq(
-        "org.slf4j" % "slf4j-log4j12" % "1.6.0"
+      jdbc,
+      anorm,
+      cache,
+      json,
+      ws,
+      "org.slf4j" % "slf4j-log4j12" % "1.6.0"
     ) ++ (hBaseVersion match {
       case "0.90" => Seq(
         "org.apache.hadoop" % "hadoop-core" % "0.20.205.0",
@@ -31,12 +38,19 @@ object ApplicationBuild extends Build {
         "org.apache.hadoop" % "hadoop-core" % "0.20.205.0",
         "org.apache.hbase" % "hbase" % "0.94.3"
       )
+      case "0.96" => Seq(
+        "org.apache.hadoop" % "hadoop-common" % "2.4.0",
+        "org.apache.hbase" % "hbase-common" % "0.96.2-hadoop2",
+        "org.apache.hbase" % "hbase-client" % "0.96.2-hadoop2"
+      )
+      case "0.98" => Seq(
+        "org.apache.hadoop" % "hadoop-common" % "2.4.0",
+        "org.apache.hbase" % "hbase-common" % "0.98.1-hadoop2",
+        "org.apache.hbase" % "hbase-client" % "0.98.1-hadoop2"
+      )
     })
 
-    val appResolvers = Seq(
-    )
-    
-    val projectSettings = Seq( 
+    val projectSettings = Seq(
       ivyXML :=
     	<dependencies>
           <exclude module="thrift" />
@@ -44,13 +58,21 @@ object ApplicationBuild extends Build {
     	</dependencies>
     )
 
-    val hBaseSourceDirectory = (hBaseVersion match {
+      val hBaseSourceDirectory = (hBaseVersion match {
       case "0.90" => "hbase/0.90/scala"
-      case _ => "hbase/0.92/scala"
+      case "0.92" => "hbase/0.92/scala"
+      case "0.94" => "hbase/0.92/scala"
+      case _ => "hbase/0.96/scala"
     })
 
-    val main = PlayProject(appName, appVersion, appDependencies, mainLang = SCALA).settings(
-      resolvers ++= appResolvers,
+
+    val main = Project(appName, file(".")).enablePlugins(play.PlayScala, SbtWeb).settings(
+
+      version := appVersion,
+
+      scalaVersion := "2.11.1",
+
+      libraryDependencies ++= appDependencies,
 
       unmanagedSourceDirectories in Compile <++= baseDirectory { base =>
         Seq(
