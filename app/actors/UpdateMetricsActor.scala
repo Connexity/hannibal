@@ -5,6 +5,14 @@
 package actors
 
 
+import _root_.play.api.Logger
+import _root_.scala.collection.mutable.HashMap
+import _root_.scala.Double
+import _root_.scala.Long
+import _root_.scala.None
+import _root_.scala.Predef._
+import _root_.scala.Some
+
 import akka.actor.Props
 import play.api.Configuration
 
@@ -95,7 +103,7 @@ class UpdateMetricsActor extends Actor {
 
     // Useful for anything being calculated as a rate between refreshes
     case UPDATE_REGION_INFO_RATES =>
-      executeMetricUpdate("RegionRates", () => {
+      executeMetricUpdate("RegionRates"){
 
         val sampleInterval = 10
         var updated = 0
@@ -132,7 +140,7 @@ class UpdateMetricsActor extends Actor {
         }
 
         updated
-      })
+      }
 
     case INITIALIZE_LOGFILE =>
       execute("initialize Logfile") {

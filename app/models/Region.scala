@@ -6,7 +6,7 @@ package models
 
 import _root_.scala.Double
 import org.apache.hadoop.hbase.util.Bytes
-import org.apache.hadoop.hbase.{HRegionInfo}
+import org.apache.hadoop.hbase.{HRegionLocation, HRegionInfo}
 import scala.collection.mutable.ListBuffer
 import play.api.Logger
 import scala.collection._
@@ -45,8 +45,8 @@ case class Region(val regionServer: RegionServer, val regionLoad: RegionLoad) {
   val regionURI         = tableName + ",," + regionIdTimestamp + "." +
                             parsedRegionName.encodedName
 
-  val readRequestsCount    = regionLoad.getReadRequestsCount
-  val writeRequestsCount   = regionLoad.getWriteRequestsCount
+  val readRequestsCount    = regionLoad.readRequestsCount
+  val writeRequestsCount   = regionLoad.writeRequestsCount
 
   val readRate    = lastReadRate
   val writeRate   = lastWriteRate

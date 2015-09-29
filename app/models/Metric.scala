@@ -14,7 +14,6 @@ import collection.mutable.{ListBuffer, MutableList}
 import org.apache.hadoop.hbase.util.Bytes
 import utils.ByteUtil
 import java.security.MessageDigest
-import models.Metric
 import models.MetricRecord
 import play.api.libs.json.{Json, JsValue, Writes}
 
@@ -51,44 +50,6 @@ object MetricDef {
 
   val WRITE_RATE = "writeRate"
   def WRITE_RATE(region: String) : MetricDef = findRegionMetricDef(region, WRITE_RATE)
-
-  def findRegionMetricDef(region: String, name: String) = find(hash(region), name, region)
-
-  def find(target: String, name: String, targetDesc: String)  = {
-    DB.withConnection { implicit c =>
-      val stream = SQL_FIND_METRIC.on("name" -> name, "target" -> target)()
-
-      val truncatedTargetDesc = if(targetDesc.length > MAX_TARGET_DESC_LENGTH) {
-        Logger.warn("truncating long region-name to %d characters".format(MAX_TARGET_DESC_LENGTH))
-        targetDesc.substring(0, MAX_TARGET_DESC_LENGTH)
-      } else {
-        targetDesc
-      }
-
-      if(stream.isEmpty) {
-        Logger.info("creating new metric for " + target + " : " + name)
-        val id = SQL_INSERT_METRIC.on("target" -> target, "name" -> name, "target_desc" -> truncatedTargetDesc).executeInsert()
-        MetricDef(id.get, target, name, 0.0, 0, truncatedTargetDesc)
-      } else {
-        val row = stream.head
-        if(row[String]("target_desc") != truncatedTargetDesc)
-        {
-          Logger.info("updating metric targetDesc in old metric '" + target +"' for " + name)
-          SQL_MIGRATE_METRIC_3.on("id" -> row[Long]("id"), "target_desc" -> truncatedTargetDesc).executeUpdate()
-        }
-        MetricDef(
-          row[Long]("id"),
-          row[String]("target"),
-          row[String]("name"),
-          row[Double]("last_value"),
-          row[Long]("last_update"),
-          truncatedTargetDesc
-        )
-      }
-    }
-  }
-
-  def COMPACTIONS(region: String): MetricDef = findRegionMetricDef(region, COMPACTIONS)
 
   def findRegionMetricDef(region: String, name: String) = find(RegionHash.byName(region).hash, name, region)
 

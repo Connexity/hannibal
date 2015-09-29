@@ -9,4 +9,6 @@ trait RegionLoad {
   val stores:Int;
   val storeFileSizeMB:Float;
   val memStoreSizeMB:Float;
+  val readRequestsCount:Long;
+  val writeRequestsCount:Long;
 }

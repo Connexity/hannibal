@@ -7,6 +7,7 @@ package models
 import org.apache.hadoop.hbase.util.Bytes
 import org.apache.hadoop.hbase.HTableDescriptor
 import play.api.libs.json.{Json, Writes}
+import scala.collection.mutable.ListBuffer
 import scala.util.control.Exception._
 import scala.collection.immutable._
 import globals.hBaseContext
@@ -14,25 +15,6 @@ import globals.hBaseContext
 object Table {
   def all(): Seq[Table] =
     hBaseContext.hBase.eachTableDescriptor { desc => Table(desc)}
-
-  def all(): Seq[Table] = {
-    val list = new ListBuffer[Table]()
-    hBaseContext.hBase.eachTableDescriptor { desc =>
-      list += Table(desc)
-    }
-    list.toList.sortBy(_.name)
-  }
-
-  def findByName(name: String): Table = {
-    var desc:HTableDescriptor = null
-    hBaseContext.hBase.withAdmin { admin =>
-      desc = admin.getTableDescriptor(Bytes.toBytes(name))
-    }
-    if(desc != null)
-       Table(desc)
-    else
-       null
-  }
 
   def findByName(name: String): Option[Table] =
     allCatch opt {

@@ -12,4 +12,6 @@ class RegionLoad096(val hbaseRegionLoad:RegionLoad) extends models.hbase.RegionL
   override val stores: Int = hbaseRegionLoad.getStores
   override val storeFiles: Int = hbaseRegionLoad.getStorefiles
   override val name = hbaseRegionLoad.getName
+  override val readRequestsCount = hbaseRegionLoad.getReadRequestsCount;
+  override val writeRequestsCount = hbaseRegionLoad.getWriteRequestsCount;
 }

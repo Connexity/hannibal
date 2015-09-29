@@ -9,8 +9,8 @@ java_version=`java -version 2>&1 | head -n 1 | cut -d\" -f 2 | cut -d. -f 2`
 hannibal_dir="`cd $dir; pwd`"
 working_dir=$PWD
 
-if [ $java_version != "6" ]; then
-    echo "Please use Java 6 SDK";
+if [ $java_version != "7" ]; then
+    echo "Please use Java 7 SDK";
     exit 1
 fi
 

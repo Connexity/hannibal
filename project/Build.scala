@@ -14,7 +14,7 @@ object ApplicationBuild extends Build {
       if(Seq("0.90", "0.92", "0.94", "0.96", "0.98").contains(getenv("HANNIBAL_HBASE_VERSION")))
         getenv("HANNIBAL_HBASE_VERSION")
       else
-        "0.90"
+        "0.98"
 
     println("Configuring for HBase Version: %s".format(hBaseVersion))
 

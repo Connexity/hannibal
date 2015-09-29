@@ -32,7 +32,7 @@
         <th>Read Requests per MB</th>
         <th>Write Requests per MB</th>
     </tr>
-    @regionList.map { region =>
+    @regions.map { region =>
     <tr>
         <td><a href="@routes.Regions.show(java.net.URLEncoder.encode(region.regionName, "UTF-8"))">@region.regionName</a></td>
         <td>@region.tableName</td>
@@ -47,3 +47,4 @@
     </tr>
     }
 </table>
+}
