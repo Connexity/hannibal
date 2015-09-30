@@ -125,7 +125,9 @@ object Region {
       "startKey" -> region.startKey,
       "regionIdTimestamp" -> region.regionIdTimestamp,
       "regionURI" -> region.regionURI,
-      "serverInfoUrl" -> region.serverInfoUrl
+      "serverInfoUrl" -> region.serverInfoUrl,
+      "readRate" -> region.readRate,
+      "writeRate" -> region.writeRate
     )
   }
 }
